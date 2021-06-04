@@ -1,32 +1,86 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+  <v-app>
+    <router-view></router-view>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
 
-#nav {
-  padding: 30px;
-}
+import { mapGetters } from 'vuex'
+import moment from 'moment'
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+export default {
+  name: 'App',
+  components: {
 
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+  },
+  mounted() {
+
+    this.getTahun()
+    this.getThemeDataLS()
+    this.checkExpiration()
+
+  },
+
+  data: () => ({
+
+    drawer: false,
+    tahun: '',
+    app_theme_key: process.env.VUE_APP_LS_THEME_KEY,
+
+  }),
+
+  computed: {
+    ...mapGetters({
+      user: 'auth/user',
+      guest: 'auth/guest',
+    }),
+    goDark: {
+      get() {
+        const theme = JSON.parse(localStorage.getItem(this.app_theme_key))
+        return theme
+      },
+      set(v) {
+        this.$vuetify.theme.dark = v
+        localStorage.setItem(this.app_theme_key, v)
+      }
+    },
+  },
+
+  methods: {
+    getTahun() {
+      this.tahun = new Date().getFullYear()
+    },
+    async logOutSSO() {
+      await localStorage.clear()
+      this.$router.go(0)
+    },
+    getThemeDataLS() {
+      const theme = localStorage.getItem(this.app_theme_key);
+      if (theme) {
+          if (theme == "true") {
+              this.$vuetify.theme.dark = true;
+          } else {
+              this.$vuetify.theme.dark = false;
+          }
+      }
+    },
+    checkExpiration() {
+      if(this.guest === false) {
+        //Get nilai expiresIn
+        const expiresIn = localStorage.getItem('sesiLogin')
+        const checkTime = moment().format()
+        console.log(expiresIn)
+        console.log(checkTime)
+        //Cek nilai nya
+        if (moment(checkTime).isAfter(expiresIn)) {
+          this.logOutSSO()
+        } 
+      }
+    }
+
+  }
+
+};
+
+</script>
