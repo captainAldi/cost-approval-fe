@@ -94,10 +94,11 @@
                 </td>
                 <td v-else>Belum Ada</td>
 
+
                 <td v-if="row.item.finances">{{row.item.finances.email}}</td>
                 <td v-else>Belum Ada</td>
 
-                <td>{{row.item.created_at}}</td>
+
                 <td>{{row.item.updated_at}}</td>
                 <td>
                     <v-btn
@@ -113,15 +114,77 @@
                       large
                       icon
                       color="green" 
-                      v-if="row.item.status == 'Waiting' && user.user.role == 'approver'"
-                      @click="approveData(row.item)"
+                      v-if="row.item.status == 'Approved'"
+                      @click="uploadBP(row.item)"
                     >
-                        <v-icon dark>mdi-check-circle</v-icon>
+                      <v-icon dark>mdi-cloud-upload-outline</v-icon>
+                    </v-btn>
+
+                    <v-btn
+                      large
+                      icon
+                      color="green" 
+                      v-if="row.item.status == 'Paid'"
+                      @click="detailBP(row.item.file_bukti_pembayaran)"
+                    >
+                      <v-icon dark>mdi-cloud-search-outline</v-icon>
                     </v-btn>
                 </td>
               </tr>
           </template>
         </v-data-table>
+
+        <!-- Add Form -->
+        <v-dialog
+          v-model="dialogForm"
+          max-width="800px"
+        >
+          <v-card>
+            <v-card-title>
+              <span class="headline">{{ formTitle }}</span>
+            </v-card-title>
+
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col>
+                    <v-file-input
+                      chips
+                      label="File Bukti Pembayaran"
+                      @change="logFileBP"
+                      filled
+                      class="mb-2"
+                      :rules="buktiPembayaranRules"
+                      show-size
+                      accept=".xls,.xlsx,.pdf,.doc,.doxz"
+                    >
+                    </v-file-input>
+                  </v-col>
+
+                  
+                </v-row>
+              </v-container>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="closeFormDialog"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="saveFormDialog"
+              >
+                Save
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         
     </v-container>
   </div>
@@ -145,10 +208,9 @@ export default {
         { text: 'Deskripsi', value: 'deskripsi'  },
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
-        { text: 'Nama Pengaju', value: 'pengajus.name'  },
+        { text: 'Nama Pengaju', value: 'pengajus'  },
         { text: 'Nama Approval', value: 'approvers' },
         { text: 'Nama Finance', value: 'finances' },
-        { text: 'Created At', value: 'created_at' },
         { text: 'Updated At', value: 'updated_at' },
         
         { text: 'Actions', value: 'controls', sortable: false },
@@ -166,8 +228,26 @@ export default {
         { title: 'Waiting', nilai: 'waiting' },
         { title: 'Approved', nilai: 'approved' },
         { title: 'Paid', nilai: 'paid' },
-      ]
+      ],
+
+      dialogForm: false,
+      editedIndex: -1,
+      editedItem: {
+        
+      },
+      defaultItem: {
+        
+      },
+
+      fileDataBP: null,
+
     }
+  },
+
+  watch: {
+    dialogForm (val) {
+      val || this.closeFormDialog()
+    },
   },
 
   mounted() {
@@ -178,6 +258,25 @@ export default {
       user  : 'auth/user',
       guest : 'auth/guest'
     }),
+
+    formTitle () {
+      return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+    },
+
+    buktiPembayaranRules() {
+      let rules
+
+      if(this.fileDataBP != null) {
+        rules =  [
+          v => !!v || 'File is required',
+          v => !v || v.size < (3072 * 1024) || 'File Terlalu Besar > 3 MB !',
+        ]
+      } else {
+        rules = []
+      }
+
+      return rules
+    },
   },
   methods: {
     ...mapActions({
@@ -244,6 +343,42 @@ export default {
 
     },
 
+    async detailBP(e) {
+      try {
+
+        this.tableLoading = true
+
+        let config = {
+          headers: {
+            'Authorization': this.user.data.token
+          },
+          responseType: 'blob'
+        }
+
+        // GetFile name
+        const fullFileName = e
+        // const fileName = fullFileName.split('.').shift()
+        const fileName = fullFileName.replace(/\.[^/.]+$/, "")
+        const fileExtension = fullFileName.split('.').pop()
+
+        let response = await axios.get(`${this.api_url}/files/bukti-pembayaran/${fileName}/${fileExtension}`, config)
+
+        this.tableLoading = false
+
+        // Create Blob from PDF to Stream
+        const file = new Blob([response.data], {type: 'application/pdf'})
+
+        // Create URL to File
+        const fileURL = URL.createObjectURL(file)
+
+        // Open URL to new Window
+        window.open(fileURL)
+      } catch (error) {
+        console.log(error)
+      }
+
+    },
+
     async approveData(e) {
       const sw = await this.$swal.fire({
         title: 'Are you sure?',
@@ -290,7 +425,74 @@ export default {
         }
 
       } 
+    },
+
+    uploadBP (e) {
+      this.editedIndex = e.id
+      this.dialogForm = true
+    },
+
+    logFileBP(e) {
+      this.fileDataBP = e
+    },
+
+    closeFormDialog () {
+      this.dialogForm = false
+      this.$nextTick(() => {
+        this.editedIndex = -1
+      })
+    },
+
+    async saveFormDialog(e) {
+      e.preventDefault()
+
+      try {
+        
+        this.setDialog({
+          status : true,
+        })
+        
+        let config = {
+          headers: {
+            'Authorization': this.user.data.token,
+            'Content-Type': 'multipart/form-data',
+          }, 
+        }
+
+        let formData = new FormData()
+
+        formData.append('file_bukti_pembayaran', this.fileDataBP)
+        formData.append('fileName', this.fileDataBP.name)
+        formData.append('_method', 'PATCH')
+
+        let response = await axios.post(`${this.api_url}/bill/pay/${this.editedIndex}`, formData, config)
+
+        this.setDialog({
+          status : false,
+        })
+
+        this.setAlert({
+          status : true,
+          color  : 'success',
+          text  : response.data.message,
+        })
+
+        this.getAllBills()
+
+        this.closeFormDialog()
+
+      } catch (error) {
+        this.setDialog({
+          status : false,
+        })
+
+        console.log(error)
+        console.log(error.response)
+      }
+    
     }
+
+
 
   }
 }

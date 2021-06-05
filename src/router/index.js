@@ -6,7 +6,9 @@ import store from '../store/index'
 import Dashboard from '../views/Dashboard.vue'
 
 import AdminBase from '../views/Admin/Base.vue'
+import ApproverBase from '../views/Approver/Base.vue'
 import UserBase from '../views/User/Base.vue'
+import FinanceBase from '../views/Finance/Base.vue'
 
 
 Vue.use(VueRouter)
@@ -46,6 +48,56 @@ const routes = [
       },
     ]
   },
+
+  // Approver
+
+  {
+    path: '/approver',
+    name: 'Approver',
+    component: ApproverBase,
+    meta: {
+      auth: true,
+      approver: true,
+    },
+    children: [
+      {
+        path: 'home',
+        component: () => import(/* webpackChunkName: "home" */ '../views/Approver/Dashboard.vue')
+      },
+      // Data Pengajuan
+      {
+        path: 'data/pengajuan',
+        name: 'approver-data-pengajuan',
+        component: () => import(/* webpackChunkName: "data-pengajuan-approver" */ '../views/Approver/Bill/Table.vue')
+      },
+    ]
+  },
+
+  // Finance
+
+  {
+    path: '/finance',
+    name: 'Finance',
+    component: FinanceBase,
+    meta: {
+      auth: true,
+      finance: true,
+    },
+    children: [
+      {
+        path: 'home',
+        component: () => import(/* webpackChunkName: "home" */ '../views/Finance/Dashboard.vue')
+      },
+      // Data Pengajuan
+      {
+        path: 'data/pengajuan',
+        name: 'finance-data-pengajuan',
+        component: () => import(/* webpackChunkName: "data-pengajuan-finance" */ '../views/Finance/Bill/Table.vue')
+      },
+    ]
+  },
+
+  // User
 
   {
     path: '/user',
@@ -145,6 +197,44 @@ router.beforeEach((to, from, next) => {
       }
     }
 
+    // Jika Routing ada meta Approver-nya maka
+    else if (to.matched.some(record => record.meta.approver)) {
+      // jika user bukan admin
+      if (store.getters['auth/user'].user.role != 'approver') {
+        // tampilkan pesan Unauthorized !
+        store.dispatch('alert/set', {
+          status: true,
+          text: 'Bukan Approver !',
+          color: 'error',
+        })
+
+        //redirect ke dashboard
+        next('/')
+      }
+      else {
+        next()
+      }
+    }
+
+    // Jika Routing ada meta Finance-nya maka
+    else if (to.matched.some(record => record.meta.finance)) {
+      // jika user bukan admin
+      if (store.getters['auth/user'].user.role != 'finance') {
+        // tampilkan pesan Unauthorized !
+        store.dispatch('alert/set', {
+          status: true,
+          text: 'Bukan Finance !',
+          color: 'error',
+        })
+
+        //redirect ke dashboard
+        next('/')
+      }
+      else {
+        next()
+      }
+    }
+
     // Jika Routing ada meta user-nya maka
     else if (to.matched.some(record => record.meta.user)) {
       // jika user bukan admin
@@ -163,6 +253,7 @@ router.beforeEach((to, from, next) => {
         next()
       }
     }
+
     // Bukan auth dan admin lanjut
     else {
       next()

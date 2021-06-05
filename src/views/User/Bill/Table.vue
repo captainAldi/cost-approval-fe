@@ -77,8 +77,6 @@
                     <span class="headline">{{ formTitle }}</span>
                   </v-card-title>
 
-                  {{editedItem}}
-
                   <v-card-text>
                     <v-container>
                       <v-form
@@ -113,7 +111,9 @@
                               required
                             ></v-select>
                           </v-col>
+                        </v-row>
 
+                        <v-row>
                           <v-col>
                             <v-file-input
                               chips
@@ -126,6 +126,27 @@
                               accept=".xls,.xlsx,.pdf,.doc,.doxz"
                             >
                             </v-file-input>
+                          </v-col>
+
+                          <v-col>
+                            <v-combobox
+                              v-model="editedItem.approver_email"
+                              label="Nama Approver"
+                              :rules="[v => !!v || 'Masukkan Judul !']"
+                              multiple
+                              filled
+                              small-chips
+                            >
+                              <template v-slot:no-data>
+                                <v-list-item>
+                                  <v-list-item-content>
+                                    <v-list-item-title>
+                                      Press <kbd>enter</kbd> to add
+                                    </v-list-item-title>
+                                  </v-list-item-content>
+                                </v-list-item>
+                              </template>
+                            </v-combobox>
                           </v-col>
                         </v-row>
 
@@ -194,9 +215,28 @@
                 </td>
                 <td>{{row.item.bu}}</td>
                 <td>{{row.item.pengajus.name}}</td>
-                <td v-if="row.item.approvers">{{row.item.approvers.name}}</td>
+
+                <td v-if="row.item.approvers">
+                  <ul>
+                    <li v-for="(item, index) in row.item.approvers" :key="index">
+                      {{item.email}} - 
+                      <v-chip
+                        :color="item.status == 'Waiting' ? 'error' : 'primary'"
+                        dark
+                        x-small
+                      >
+                        {{item.status}}
+                      </v-chip>
+                    </li>
+                  </ul>
+                </td>
                 <td v-else>Belum Ada</td>
+
+                <td v-if="row.item.finances">{{row.item.finances.email}}</td>
+                <td v-else>Belum di Bayar</td>
+
                 <td>{{row.item.created_at}}</td>
+
                 <td>{{row.item.updated_at}}</td>
                 <td>
                     <v-btn
@@ -235,10 +275,10 @@ export default {
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
         { text: 'Nama Pengaju', value: 'pengajus.name'  },
-        { text: 'Nama Approval', value: 'approvers.name' },
+        { text: 'Nama Approval', value: 'approvers' },
+        { text: 'Nama Finance', value: 'finances' },
         { text: 'Created At', value: 'created_at' },
         { text: 'Updated At', value: 'updated_at' },
-        
         { text: 'Actions', value: 'controls', sortable: false },
       ],
       dataBills: [],
@@ -253,6 +293,7 @@ export default {
       itemsStatusBill: [
         { title: 'Waiting', nilai: 'waiting' },
         { title: 'Approved', nilai: 'approved' },
+        { title: 'Paid', nilai: 'paid' },
       ],
 
       dialogForm: false,
@@ -261,11 +302,13 @@ export default {
         judul: "",
         deskripsi: "",
         bu: "",
+        approver_email: []
       },
       defaultItem: {
         judul: "",
         deskripsi: "",
         bu: "",
+        approver_email: []
       },
 
       fileDataInv: null,
@@ -418,6 +461,10 @@ export default {
           formData.append('deskripsi', this.editedItem.deskripsi)
           formData.append('bu', this.editedItem.bu)
 
+          this.editedItem.approver_email.forEach(element => {
+            formData.append('approver_email[]', element)
+          })
+
           const response = await axios.post(this.api_url + '/bill/add', formData, config)
 
           this.setDialog({
@@ -432,13 +479,16 @@ export default {
 
           this.getAllBills()
 
+          this.closeFormDialog()
+
         } catch (error) {
           
           this.setDialog({
             status : false,
           })
 
-          console.log(error.response.message)
+          console.log(error)
+          console.log(error.response)
 
         }
 

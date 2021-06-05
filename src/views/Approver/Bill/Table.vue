@@ -113,7 +113,7 @@
                       large
                       icon
                       color="green" 
-                      v-if="row.item.status == 'Waiting' && user.user.role == 'approver'"
+                      v-if="row.item.status == 'Waiting' && user.user.role == 'approver'  && statusBill == 'waiting'"
                       @click="approveData(row.item)"
                     >
                         <v-icon dark>mdi-check-circle</v-icon>

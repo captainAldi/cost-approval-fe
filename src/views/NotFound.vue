@@ -87,12 +87,14 @@ export default {
   methods: {
     redirectToHome(){
       setTimeout(() => {
-        let checkAdmin = this.user.user.role == 'admin'
+        let checkAdmin = this.user.user.role
 
-        console.log
-
-        if (checkAdmin) {
+        if (checkAdmin == 'admin') {
           this.$router.push('/admin/home')
+        } else if (checkAdmin == 'approver'){
+          this.$router.push('/approver/home')
+        } else if (checkAdmin == 'finance'){
+          this.$router.push('/finance/home')
         } else {
           this.$router.push('/user/home')
         }
