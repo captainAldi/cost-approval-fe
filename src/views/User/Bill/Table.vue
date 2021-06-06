@@ -487,8 +487,11 @@ export default {
             status : false,
           })
 
-          console.log(error)
-          console.log(error.response)
+          this.closeFormDialog()
+
+          this.alertObject.status = true
+          this.alertObject.type = 'error'
+          this.alertObject.message = error.response.data
 
         }
 
