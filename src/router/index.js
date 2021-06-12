@@ -140,14 +140,21 @@ const routes = [
     component: () => import(/* webpackChunkName: "LoginGoogle" */ '../views/Auth/LoginGoogle.vue')
   },
 
+  // Approve via Token
+  {
+    path: '/otr/bill/approve/:token',
+    name: 'approve-token',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "NotFound" */ '../views/BillApproveToken.vue')
+  },
+
   // 404
 
   {
     path: '*',
     name: 'NotFound',
-    meta: {
-      auth: true
-    },
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.

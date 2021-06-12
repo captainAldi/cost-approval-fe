@@ -132,10 +132,13 @@
                             <v-combobox
                               v-model="editedItem.approver_email"
                               label="Nama Approver"
-                              :rules="[v => !!v || 'Masukkan Judul !']"
+                              :rules="[v => !!v || 'Masukkan Approver !']"
                               multiple
                               filled
                               small-chips
+                              hide-selected
+                              :items="approversName"
+                              :search-input.sync="searchApproverName"
                             >
                               <template v-slot:no-data>
                                 <v-list-item>
@@ -312,7 +315,10 @@ export default {
       },
 
       fileDataInv: null,
-      validAddBillForm: false
+      validAddBillForm: false,
+
+      approversName: [],
+      searchApproverName: ''
     }
   },
 
@@ -324,6 +330,7 @@ export default {
 
   mounted() {
     this.getAllBills()
+    this.getApproversName()
   },
   computed: {
     ...mapGetters({
@@ -357,6 +364,29 @@ export default {
       setAuth   : 'auth/set',
       setDialog : 'dialog/set'
     }),
+
+    async getApproversName() {
+      try {
+
+        let config = {
+          headers: {
+            'Authorization': this.user.data.token
+          }
+        }
+
+        let response = await axios.get(this.api_url + '/approvers/name/get', config)
+
+        let mappedEmail = response.data.data.map(item => {
+          return item['email']
+        })
+
+        this.approversName = mappedEmail
+
+      } catch (error) {
+        console.log(error.response.message)
+      }
+      
+    },
     
     async getAllBills() {
       try {
