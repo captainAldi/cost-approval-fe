@@ -86,7 +86,21 @@ export default {
         this.setAuth(response.data)
         let sesiLogin = moment().add('15', 'minutes').format()
         localStorage.setItem('sesiLogin', sesiLogin);
-        if(this.prevUrl.length > 0) this.$router.push(this.prevUrl)
+
+        // if(this.prevUrl.length > 0) this.$router.push(this.prevUrl)
+
+        let checkAdmin = this.user.user.role
+
+        if (checkAdmin == 'admin') {
+          this.$router.push('/admin/data/pengajuan')
+        } else if (checkAdmin == 'approver'){
+          this.$router.push('/approver/data/pengajuan')
+        } else if (checkAdmin == 'finance'){
+          this.$router.push('/finance/data/pengajuan')
+        } else {
+          this.$router.push('/user/data/pengajuan')
+        }
+
       } catch (error) {
         this.errorStatus = true
         if ( error.response.status === 401 ) {

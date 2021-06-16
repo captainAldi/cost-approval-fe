@@ -87,17 +87,24 @@ export default {
   methods: {
     redirectToHome(){
       setTimeout(() => {
-        let checkAdmin = this.user.user.role
+        let checkGuest = this.guest
 
-        if (checkAdmin == 'admin') {
-          this.$router.push('/admin/home')
-        } else if (checkAdmin == 'approver'){
-          this.$router.push('/approver/home')
-        } else if (checkAdmin == 'finance'){
-          this.$router.push('/finance/home')
+        if (checkGuest) {
+          this.$router.replace('/login')
         } else {
-          this.$router.push('/user/home')
+          let checkAdmin = this.user.user.role
+
+          if (checkAdmin == 'admin') {
+            this.$router.push('/admin/home')
+          } else if (checkAdmin == 'approver'){
+            this.$router.push('/approver/home')
+          } else if (checkAdmin == 'finance'){
+            this.$router.push('/finance/home')
+          } else {
+            this.$router.push('/user/home')
+          }
         }
+
       }, 3000)
     }
   }
