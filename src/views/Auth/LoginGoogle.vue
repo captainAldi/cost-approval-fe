@@ -84,6 +84,7 @@ export default {
         const queryString = Object.keys(dataParam).map(key => key + '=' + dataParam[key]).join('&');
         const response = await axios.get(this.base_api_url + '/oauth/google/callback?' + queryString)
         this.setAuth(response.data)
+        
         let sesiLogin = moment().add('15', 'minutes').format()
         localStorage.setItem('sesiLogin', sesiLogin);
 
