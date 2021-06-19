@@ -24,7 +24,9 @@
 
           <v-row>
             <v-col
-              cols="2"
+              cols="12"
+              sm="6"
+              md="4"
             >
               <v-select
                 v-model="statusBill"
@@ -39,7 +41,9 @@
             </v-col>
 
             <v-col
-              cols="2"
+              cols="12"
+              sm="6"
+              md="4"
             >
               <v-text-field
                 v-model="search"
@@ -111,10 +115,38 @@
                               required
                             ></v-select>
                           </v-col>
+
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                          <v-combobox
+                              v-model="editedItem.business_initiative"
+                              label="Business Initiative"
+                              :rules="[v => !!v || 'Masukkan Business Initiative !']"
+                              small-chips
+                              hide-selected
+                            >
+                              <template v-slot:no-data>
+                                <v-list-item>
+                                  <v-list-item-content>
+                                    <v-list-item-title>
+                                      Press <kbd>enter</kbd> to add
+                                    </v-list-item-title>
+                                  </v-list-item-content>
+                                </v-list-item>
+                              </template>
+                            </v-combobox>
+                          </v-col>
                         </v-row>
 
                         <v-row>
-                          <v-col>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
                             <v-file-input
                               chips
                               label="File Invoice"
@@ -128,11 +160,17 @@
                             </v-file-input>
                           </v-col>
 
-                          <v-col>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
                             <v-combobox
                               v-model="editedItem.approver_email"
                               label="Nama Approver"
-                              :rules="[v => !!v || 'Masukkan Approver !']"
+                              :rules="[
+                                v => !v || v.length >= 1 || 'Masukkan Approver'
+                              ]"
                               multiple
                               filled
                               small-chips
@@ -217,6 +255,7 @@
                   </v-btn>
                 </td>
                 <td>{{row.item.bu}}</td>
+                <td>{{row.item.business_initiative}}</td>
                 <td>{{row.item.pengajus.name}}</td>
 
                 <td v-if="row.item.approvers">
@@ -237,8 +276,6 @@
 
                 <td v-if="row.item.finances">{{row.item.finances.email}}</td>
                 <td v-else>Belum di Bayar</td>
-
-                <td>{{row.item.created_at}}</td>
 
                 <td>{{row.item.updated_at}}</td>
                 <td>
@@ -277,10 +314,10 @@ export default {
         { text: 'Deskripsi', value: 'deskripsi'  },
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
+        { text: 'BI', value: 'business_initiative' },
         { text: 'Nama Pengaju', value: 'pengajus.name'  },
         { text: 'Nama Approval', value: 'approvers' },
         { text: 'Nama Finance', value: 'finances' },
-        { text: 'Created At', value: 'created_at' },
         { text: 'Updated At', value: 'updated_at' },
         { text: 'Actions', value: 'controls', sortable: false },
       ],
@@ -305,13 +342,15 @@ export default {
         judul: "",
         deskripsi: "",
         bu: "",
-        approver_email: []
+        approver_email: [],
+        business_initiative: ''
       },
       defaultItem: {
         judul: "",
         deskripsi: "",
         bu: "",
-        approver_email: []
+        approver_email: [],
+        business_initiative: ''
       },
 
       fileDataInv: null,
@@ -351,7 +390,7 @@ export default {
           v => !v || v.size < (3072 * 1024) || 'File Terlalu Besar > 3 MB !',
         ]
       } else {
-        rules = []
+        rules = [v => !!v || 'File is required',]
       }
 
       return rules
@@ -490,6 +529,7 @@ export default {
           formData.append('judul', this.editedItem.judul)
           formData.append('deskripsi', this.editedItem.deskripsi)
           formData.append('bu', this.editedItem.bu)
+          formData.append('business_initiative', this.editedItem.business_initiative)
 
           this.editedItem.approver_email.forEach(element => {
             formData.append('approver_email[]', element)

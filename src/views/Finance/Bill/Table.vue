@@ -76,6 +76,7 @@
                   </v-btn>
                 </td>
                 <td>{{row.item.bu}}</td>
+                <td>{{row.item.business_initiative}}</td>
                 <td>{{row.item.pengajus.name}}</td>
 
                 <td v-if="row.item.approvers">
@@ -208,6 +209,7 @@ export default {
         { text: 'Deskripsi', value: 'deskripsi'  },
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
+        { text: 'BI', value: 'business_initiative'  },
         { text: 'Nama Pengaju', value: 'pengajus'  },
         { text: 'Nama Approval', value: 'approvers' },
         { text: 'Nama Finance', value: 'finances' },

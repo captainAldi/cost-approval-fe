@@ -76,6 +76,7 @@
                   </v-btn>
                 </td>
                 <td>{{row.item.bu}}</td>
+                <td>{{row.item.business_initiative}}</td>
                 <td>{{row.item.pengajus.name}}</td>
 
                 <td v-if="row.item.approvers">
@@ -97,7 +98,6 @@
                 <td v-if="row.item.finances">{{row.item.finances.email}}</td>
                 <td v-else>Belum Ada</td>
 
-                <td>{{row.item.created_at}}</td>
                 <td>{{row.item.updated_at}}</td>
                 <td>
                     <v-btn
@@ -145,10 +145,10 @@ export default {
         { text: 'Deskripsi', value: 'deskripsi'  },
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
+        { text: 'BI', value: 'business_initiative'  },
         { text: 'Nama Pengaju', value: 'pengajus.name'  },
         { text: 'Nama Approval', value: 'approvers' },
         { text: 'Nama Finance', value: 'finances' },
-        { text: 'Created At', value: 'created_at' },
         { text: 'Updated At', value: 'updated_at' },
         
         { text: 'Actions', value: 'controls', sortable: false },
