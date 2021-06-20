@@ -24,7 +24,9 @@
 
           <v-row>
             <v-col
-              cols="2"
+              cols="12"
+              sm="6"
+              md="4"
             >
               <v-select
                 v-model="statusBill"
@@ -39,7 +41,9 @@
             </v-col>
 
             <v-col
-              cols="2"
+              cols="12"
+              sm="6"
+              md="4"
             >
               <v-text-field
                 v-model="search"
@@ -77,6 +81,21 @@
                 </td>
                 <td>{{row.item.bu}}</td>
                 <td>{{row.item.business_initiative}}</td>
+                <td>{{row.item.nama_pt}}</td>
+                <td>{{row.item.tanggal_jatuh_tempo}}</td>
+                <td>
+                  {{new Intl.NumberFormat('id', { style: 'currency', currency: 'IDR' }).format(row.item.jumlah_tagihan)}}
+                </td>
+                <td>
+                  <v-chip
+                    :color="row.item.transaksi_berulang == 'Tidak' ? 'error' : 'primary'"
+                    dark
+                    x-small
+                  >
+                    {{row.item.transaksi_berulang}}
+                  </v-chip>
+                </td>
+
                 <td>{{row.item.pengajus.name}}</td>
 
                 <td v-if="row.item.approvers">
@@ -146,9 +165,13 @@ export default {
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
         { text: 'BI', value: 'business_initiative'  },
+        { text: 'PT', value: 'nama_pt' },
+        { text: 'Tempo', value: 'tanggal_jatuh_tempo' },
+        { text: 'Tagihan', value: 'tagihan' },
+        { text: 'Berulang', value: 'transaksi_berulang' },
         { text: 'Nama Pengaju', value: 'pengajus.name'  },
-        { text: 'Nama Approval', value: 'approvers' },
-        { text: 'Nama Finance', value: 'finances' },
+        { text: 'E-Mail Approval', value: 'approvers' },
+        { text: 'E-Mail Finance', value: 'finances' },
         { text: 'Updated At', value: 'updated_at' },
         
         { text: 'Actions', value: 'controls', sortable: false },

@@ -34,7 +34,7 @@
                 item-text="title"
                 item-value="nilai"
                 label="Status"
-                single-line
+                
                 required
                 @change="getAllBills"
               ></v-select>
@@ -49,7 +49,7 @@
                 v-model="search"
                 append-icon="mdi-magnify"
                 label="Search"
-                single-line
+                
                 hide-details
               ></v-text-field>
             </v-col>
@@ -106,14 +106,29 @@
                             sm="6"
                             md="4"
                           >
-                          <v-select
+                            <v-combobox
                               v-model="editedItem.bu"
-                              :items="['BSA', 'ATI', 'STI']"
-                              :rules="[v => !!v || 'Pilih Business Unit !']"
                               label="Business Unit"
-                              single-line
-                              required
-                            ></v-select>
+                              :rules="[v => !!v || 'Masukkan Business unit !']"
+                              small-chips
+                              hide-selected
+                              :items="['HO', 
+                                        'AB', 
+                                        'BSA',
+                                        'ALTA',
+                                        'AX'
+                                      ]"
+                            >
+                              <template v-slot:no-data>
+                                <v-list-item>
+                                  <v-list-item-content>
+                                    <v-list-item-title>
+                                      Press <kbd>enter</kbd> to add
+                                    </v-list-item-title>
+                                  </v-list-item-content>
+                                </v-list-item>
+                              </template>
+                            </v-combobox>
                           </v-col>
 
                           <v-col
@@ -147,32 +162,13 @@
                             sm="6"
                             md="4"
                           >
-                            <v-file-input
-                              chips
-                              label="File Invoice"
-                              @change="logFileInv"
-                              filled
-                              class="mb-2"
-                              :rules="importRules"
-                              show-size
-                              accept=".xls,.xlsx,.pdf,.doc,.doxz"
-                            >
-                            </v-file-input>
-                          </v-col>
-
-                          <v-col
-                            cols="12"
-                            sm="6"
-                            md="4"
-                          >
                             <v-combobox
                               v-model="editedItem.approver_email"
-                              label="Nama Approver"
+                              label="E-Mail Approver"
                               :rules="[
                                 v => !v || v.length >= 1 || 'Masukkan Approver'
                               ]"
                               multiple
-                              filled
                               small-chips
                               hide-selected
                               :items="approversName"
@@ -188,6 +184,117 @@
                                 </v-list-item>
                               </template>
                             </v-combobox>
+                          </v-col>
+
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-combobox
+                              v-model="editedItem.nama_pt"
+                              label="Nama PT"
+                              :rules="[v => !!v || 'Masukkan Nama PT !']"
+                              small-chips
+                              :items="['ATI', 
+                                        'STI', 
+                                        'AKJ', 
+                                        'GST', 
+                                        'TNJ', 
+                                        'BTI', 
+                                        'BSA', 
+                                        'ANJ', 
+                                        'AIT', 
+                                        'MKP', 
+                                        'AON', 
+                                        'HNJ',
+                                        'TNJ'
+                                      ]"
+                              hide-selected
+                              
+                            ></v-combobox>
+                          </v-col>
+
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-select
+                              v-model="editedItem.transaksi_berulang"
+                              :items="['Ya', 'Tidak']"
+                              :rules="[v => !!v || 'Pilih Salah Satu !']"
+                              label="Transaksi Berulang ?"
+                              
+                              required
+                            ></v-select>
+                          </v-col>
+                        </v-row>
+
+                        <v-row>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-text-field
+                              v-model="editedItem.jumlah_tagihan"
+                              type="number"
+                              label="Jumlah Tagihan"
+                              :rules="[
+                                v => !!v || 'Masukkan Jumlah Tagihan !',
+                                v => /^[0-9]+$/.test(v) || 'Masukkan Angka !',
+                              ]"
+                              prefix="Rp"
+                            ></v-text-field>
+                          </v-col>
+
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-menu
+                              v-model="menuTanggalJatuhTempo"
+                              :close-on-content-click="false"
+                              :nudge-right="40"
+                              transition="scale-transition"
+                              offset-y
+                              min-width="auto"
+                            >
+                              <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                  v-model="editedItem.tanggal_jatuh_tempo"
+                                  label="Tanggal Jatuh Tempo"
+                                  prepend-icon="mdi-calendar"
+                                  readonly
+                                  v-bind="attrs"
+                                  v-on="on"
+                                ></v-text-field>
+                              </template>
+                              <v-date-picker
+                                v-model="editedItem.tanggal_jatuh_tempo"
+                                @input="menuTanggalJatuhTempo = false"
+                              ></v-date-picker>
+                            </v-menu>
+                          </v-col>
+                        </v-row>
+
+                        <v-row>
+                          <v-col
+                            cols="12"
+                          >
+                            <v-file-input
+                              chips
+                              label="File Invoice"
+                              @change="logFileInv"
+                              filled
+                              class="mb-2"
+                              :rules="importRules"
+                              show-size
+                              accept=".xls,.xlsx,.pdf,.doc,.doxz"
+                            >
+                            </v-file-input>
                           </v-col>
                         </v-row>
 
@@ -256,6 +363,21 @@
                 </td>
                 <td>{{row.item.bu}}</td>
                 <td>{{row.item.business_initiative}}</td>
+                <td>{{row.item.nama_pt}}</td>
+                <td>{{row.item.tanggal_jatuh_tempo}}</td>
+                <td>
+                  {{new Intl.NumberFormat('id', { style: 'currency', currency: 'IDR' }).format(row.item.jumlah_tagihan)}}
+                </td>
+                <td>
+                  <v-chip
+                    :color="row.item.transaksi_berulang == 'Tidak' ? 'error' : 'primary'"
+                    dark
+                    x-small
+                  >
+                    {{row.item.transaksi_berulang}}
+                  </v-chip>
+                </td>
+
                 <td>{{row.item.pengajus.name}}</td>
 
                 <td v-if="row.item.approvers">
@@ -315,9 +437,13 @@ export default {
         { text: 'Status', value: 'status'  },
         { text: 'BU', value: 'bu'  },
         { text: 'BI', value: 'business_initiative' },
+        { text: 'PT', value: 'nama_pt' },
+        { text: 'Tempo', value: 'tanggal_jatuh_tempo' },
+        { text: 'Tagihan', value: 'tagihan' },
+        { text: 'Berulang', value: 'transaksi_berulang' },
         { text: 'Nama Pengaju', value: 'pengajus.name'  },
-        { text: 'Nama Approval', value: 'approvers' },
-        { text: 'Nama Finance', value: 'finances' },
+        { text: 'E-Mail Approval', value: 'approvers' },
+        { text: 'E-Mail Finance', value: 'finances' },
         { text: 'Updated At', value: 'updated_at' },
         { text: 'Actions', value: 'controls', sortable: false },
       ],
@@ -343,15 +469,25 @@ export default {
         deskripsi: "",
         bu: "",
         approver_email: [],
-        business_initiative: ''
+        business_initiative: '',
+        nama_pt: '',
+        transaksi_berulang: '',
+        jumlah_tagihan: 0,
+        tanggal_jatuh_tempo: new Date().toISOString().substr(0, 10),
       },
       defaultItem: {
         judul: "",
         deskripsi: "",
         bu: "",
         approver_email: [],
-        business_initiative: ''
+        business_initiative: '',
+        nama_pt: '',
+        transaksi_berulang: '',
+        jumlah_tagihan: 0,
+        tanggal_jatuh_tempo: new Date().toISOString().substr(0, 10),
       },
+
+      menuTanggalJatuhTempo: false,
 
       fileDataInv: null,
       validAddBillForm: false,
@@ -530,6 +666,10 @@ export default {
           formData.append('deskripsi', this.editedItem.deskripsi)
           formData.append('bu', this.editedItem.bu)
           formData.append('business_initiative', this.editedItem.business_initiative)
+          formData.append('nama_pt', this.editedItem.nama_pt)
+          formData.append('transaksi_berulang', this.editedItem.transaksi_berulang)
+          formData.append('jumlah_tagihan', this.editedItem.jumlah_tagihan)
+          formData.append('tanggal_jatuh_tempo', this.editedItem.tanggal_jatuh_tempo)
 
           this.editedItem.approver_email.forEach(element => {
             formData.append('approver_email[]', element)

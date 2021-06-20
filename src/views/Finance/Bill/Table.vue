@@ -24,7 +24,9 @@
 
           <v-row>
             <v-col
-              cols="2"
+              cols="12"
+              sm="6"
+              md="4"
             >
               <v-select
                 v-model="statusBill"
@@ -39,7 +41,9 @@
             </v-col>
 
             <v-col
-              cols="2"
+              cols="12"
+              sm="6"
+              md="4"
             >
               <v-text-field
                 v-model="search"
@@ -77,6 +81,21 @@
                 </td>
                 <td>{{row.item.bu}}</td>
                 <td>{{row.item.business_initiative}}</td>
+                <td>{{row.item.nama_pt}}</td>
+                <td>{{row.item.tanggal_jatuh_tempo}}</td>
+                <td>
+                  {{new Intl.NumberFormat('id', { style: 'currency', currency: 'IDR' }).format(row.item.jumlah_tagihan)}}
+                </td>
+                <td>
+                  <v-chip
+                    :color="row.item.transaksi_berulang == 'Tidak' ? 'error' : 'primary'"
+                    dark
+                    x-small
+                  >
+                    {{row.item.transaksi_berulang}}
+                  </v-chip>
+                </td>
+
                 <td>{{row.item.pengajus.name}}</td>
 
                 <td v-if="row.item.approvers">
@@ -161,8 +180,34 @@
                     >
                     </v-file-input>
                   </v-col>
+                </v-row>
 
-                  
+                <v-row>
+                  <v-col>
+                    <v-menu
+                      v-model="menuTanggalTransaksi"
+                      :close-on-content-click="false"
+                      :nudge-right="40"
+                      transition="scale-transition"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          v-model="tanggal_transaksi"
+                          label="Tanggal Transaksi"
+                          prepend-icon="mdi-calendar"
+                          readonly
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        v-model="tanggal_transaksi"
+                        @input="menuTanggalTransaksi = false"
+                      ></v-date-picker>
+                    </v-menu>
+                  </v-col>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -205,14 +250,18 @@ export default {
       tableLoading: false,
       headers: [
         { text: 'No', value: 'no', sortable: false },
-        { text: 'Judul', value: 'judul' },
-        { text: 'Deskripsi', value: 'deskripsi'  },
-        { text: 'Status', value: 'status'  },
-        { text: 'BU', value: 'bu'  },
-        { text: 'BI', value: 'business_initiative'  },
-        { text: 'Nama Pengaju', value: 'pengajus'  },
-        { text: 'Nama Approval', value: 'approvers' },
-        { text: 'Nama Finance', value: 'finances' },
+        { text: 'Judul', value: 'judul', width: '100%' },
+        { text: 'Deskripsi', value: 'deskripsi' },
+        { text: 'Status', value: 'status' },
+        { text: 'BU', value: 'bu'},
+        { text: 'BI', value: 'business_initiative' },
+        { text: 'PT', value: 'nama_pt' },
+        { text: 'Tempo', value: 'tanggal_jatuh_tempo' },
+        { text: 'Tagihan', value: 'tagihan' },
+        { text: 'Berulang', value: 'transaksi_berulang' },
+        { text: 'Nama Pengaju', value: 'pengajus' },
+        { text: 'E-Mail Approval', value: 'approvers' },
+        { text: 'E-Mail Finance', value: 'finances' },
         { text: 'Updated At', value: 'updated_at' },
         
         { text: 'Actions', value: 'controls', sortable: false },
@@ -240,6 +289,9 @@ export default {
       defaultItem: {
         
       },
+
+      menuTanggalTransaksi: false,
+      tanggal_transaksi: new Date().toISOString().substr(0, 10),
 
       fileDataBP: null,
 
@@ -381,54 +433,6 @@ export default {
 
     },
 
-    async approveData(e) {
-      const sw = await this.$swal.fire({
-        title: 'Are you sure?',
-        text: `Approve "${e.judul}" ?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, Pay it!'
-      })
-
-      if (sw.value) {
-        try {
-          
-          this.tableLoading = true
-
-          let config = {
-            headers: {
-              'Authorization': this.user.data.token
-            },
-          }
-
-          let formData = new FormData()
-          formData.append('_method', 'PATCH')
-
-          let response = await axios.post(`${this.api_url}/bill/approve/${e.id}`, formData, config)
-
-          this.tableLoading = false
-
-          this.setAlert({
-            status : true,
-            color  : 'success',
-            text  : response.data.message,
-          })
-
-          this.getAllBills()
-
-        } catch (error) {
-          this.setAlert({
-            status : true,
-            color  : 'error',
-            text  : error.response.data,
-          })
-        }
-
-      } 
-    },
-
     uploadBP (e) {
       this.editedIndex = e.id
       this.dialogForm = true
@@ -465,6 +469,7 @@ export default {
 
         formData.append('file_bukti_pembayaran', this.fileDataBP)
         formData.append('fileName', this.fileDataBP.name)
+        formData.append('tanggal_transaksi', this.tanggal_transaksi)
         formData.append('_method', 'PATCH')
 
         let response = await axios.post(`${this.api_url}/bill/pay/${this.editedIndex}`, formData, config)
@@ -500,6 +505,8 @@ export default {
 }
 </script>
 
-<style>
-
+<style scoped>
+.v-data-table-header th {
+  white-space: nowrap;
+}
 </style>
